@@ -1,0 +1,465 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { supabase } from '../lib/supabase';
+
+export const prerender = false;
+
+// Obtener iglesias desde Supabase o usar fallback inicial
+let listaIglesias = ['Iglesia Central', 'Centro Cristiano Internacional', 'Comunidad Bíblica de Gracia'];
+
+try {
+  if (import.meta.env.PUBLIC_SUPABASE_URL) {
+    const { data } = await supabase.from('iglesias').select('nombre').order('nombre', { ascending: true });
+    if (data && data.length > 0) {
+      listaIglesias = data.map(i => i.nombre);
+    }
+  }
+} catch (e) {
+  console.log("Supabase no conectado aún o sin configurar");
+}
+---
+
+<Layout title="Taller Transformados | Registro Oficial">
+	<!-- Luces ambientales de fondo -->
+	<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+		<div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-indigo-600/30 via-purple-600/25 to-pink-500/10 blur-[130px] rounded-full"></div>
+		<div class="absolute top-[650px] -left-36 w-[450px] h-[450px] bg-blue-600/15 blur-[120px] rounded-full"></div>
+	</div>
+
+	<!-- Barra de Navegación -->
+	<header class="sticky top-0 z-40 backdrop-blur-md bg-slate-950/70 border-b border-slate-800/80">
+		<div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+			<div class="flex items-center space-x-2">
+				<span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-extrabold text-white shadow-lg shadow-indigo-500/40">✦</span>
+				<span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Taller Transformados 2026</span>
+			</div>
+			<a href="#inscripcion" class="text-sm font-semibold bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-xl transition border border-indigo-500/30">
+				Inscribirme
+			</a>
+		</div>
+	</header>
+
+	<main class="max-w-6xl mx-auto px-4 py-12 md:py-20 space-y-24">
+		<!-- PORTADA / HERO -->
+		<section class="text-center space-y-8 max-w-3xl mx-auto">
+			<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+				<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+				Inscripciones abiertas • Cupos limitados
+			</div>
+
+			<h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
+				Liderazgo & Servicio:<br/>
+				<span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+					Renueva Tu Pasión
+				</span>
+			</h1>
+
+			<p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+				Un espacio intensivo diseñado para edificar, capacitar y proyectar el llamado de líderes y servidores de la iglesia actual. Conéctate, aprende y crece.
+			</p>
+
+			<!-- Píldoras de Info del Evento -->
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-left">
+				<div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+					<div class="text-xs text-indigo-400 uppercase font-semibold">Fecha</div>
+					<div class="text-base font-bold text-white mt-1">Sábado 28 de Noviembre</div>
+					<div class="text-xs text-slate-400">9:00 AM – 4:00 PM</div>
+				</div>
+				<div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+					<div class="text-xs text-indigo-400 uppercase font-semibold">Ubicación</div>
+					<div class="text-base font-bold text-white mt-1">Auditorio Central</div>
+					<div class="text-xs text-slate-400">Av. Las Delicias, Edif. Fe</div>
+				</div>
+				<div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+					<div class="text-xs text-indigo-400 uppercase font-semibold">Inversión</div>
+					<div class="text-base font-bold text-emerald-400 mt-1">$10 USD o equivalente</div>
+					<div class="text-xs text-slate-400">Material + Almuerzo incluido</div>
+				</div>
+			</div>
+
+			<div class="pt-4">
+				<a href="#inscripcion" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition shadow-xl shadow-indigo-600/30 transform active:scale-[0.98]">
+					Completar Registro Ahora
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+				</a>
+			</div>
+		</section>
+
+		<!-- SECCIÓN DEL FORMULARIO Y TICKET -->
+		<section id="inscripcion" class="max-w-2xl mx-auto">
+			<div class="bg-slate-900/80 border border-slate-800/90 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+				
+				<!-- Vista del Formulario -->
+				<div id="form-container">
+					<div class="mb-8">
+						<h2 class="text-2xl font-bold text-white">Formulario de Registro</h2>
+						<p class="text-sm text-slate-400 mt-1">Ingresa tus datos con precisión para garantizar tu credencial.</p>
+					</div>
+
+					<form id="registroForm" class="space-y-6">
+						<!-- Datos Personales -->
+						<div class="space-y-4">
+							<div>
+								<label class="block text-xs font-semibold uppercase text-slate-300 mb-1.5" for="nombre_apellido">Nombre y Apellido *</label>
+								<input required type="text" id="nombre_apellido" name="nombre_apellido" placeholder="Ej. Juan Pérez" class="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition" />
+							</div>
+
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div>
+									<label class="block text-xs font-semibold uppercase text-slate-300 mb-1.5" for="telefono">Teléfono / WhatsApp *</label>
+									<input required type="tel" id="telefono" name="telefono" placeholder="Ej. 0414-1234567" class="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition" />
+								</div>
+								<div>
+									<label class="block text-xs font-semibold uppercase text-slate-300 mb-1.5" for="correo">Correo Electrónico *</label>
+									<input required type="email" id="correo" name="correo" placeholder="juan@gmail.com" class="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition" />
+								</div>
+							</div>
+						</div>
+
+						<!-- ¿Sirve en un área? -->
+						<div class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 space-y-3">
+							<span class="block text-sm font-semibold text-white">¿Actualmente sirves en algún área o ministerio?</span>
+							<div class="flex items-center gap-6">
+								<label class="inline-flex items-center gap-2 cursor-pointer">
+									<input type="radio" name="sirve_area_radio" value="no" checked class="text-indigo-600 focus:ring-0 w-4 h-4" />
+									<span class="text-sm text-slate-300">No</span>
+								</label>
+								<label class="inline-flex items-center gap-2 cursor-pointer">
+									<input type="radio" name="sirve_area_radio" value="si" class="text-indigo-600 focus:ring-0 w-4 h-4" />
+									<span class="text-sm text-slate-300">Sí</span>
+								</label>
+							</div>
+
+							<div id="campo-area" class="hidden pt-2">
+								<label class="block text-xs font-medium text-indigo-300 mb-1">¿En cuál ministerio o área sirves?</label>
+								<input type="text" id="nombre_area" placeholder="Ej. Alabanza, Multimedia, Jóvenes, Ujieres..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-400" />
+							</div>
+						</div>
+
+						<!-- Iglesia (Select auto-alimentado) -->
+						<div class="space-y-2">
+							<label class="block text-xs font-semibold uppercase text-slate-300" for="select-iglesia">Iglesia de procedencia *</label>
+							<select id="select-iglesia" required class="w-full px-4 py-3 rounded-xl bg-slate-950/70 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 transition">
+								<option value="" disabled selected>Selecciona tu iglesia</option>
+								{listaIglesias.map((iglesia) => (
+									<option value={iglesia}>{iglesia}</option>
+								))}
+								<option value="__NUEVA__" class="font-bold text-indigo-400 bg-slate-900">➕ Agregar otra iglesia no listada...</option>
+							</select>
+
+							<!-- Input extra para registrar nueva iglesia si no existe -->
+							<div id="nueva-iglesia-box" class="hidden p-3 rounded-xl bg-indigo-950/30 border border-indigo-800/60 space-y-2">
+								<p class="text-xs text-indigo-300">Escribe el nombre de tu congregación para añadirla automáticamente:</p>
+								<div class="flex gap-2">
+									<input type="text" id="input-nueva-iglesia" placeholder="Nombre completo de la iglesia" class="flex-1 px-3 py-2 text-sm rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+									<button type="button" id="btn-anadir-iglesia" class="px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition">Añadir</button>
+								</div>
+							</div>
+						</div>
+
+						<!-- Estado de Pago -->
+						<div class="space-y-3">
+							<label class="block text-xs font-semibold uppercase text-slate-300">Forma / Estado de Pago *</label>
+							<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								<label class="cursor-pointer border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center hover:border-slate-700 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/20 transition">
+									<input type="radio" name="estado_pago" value="pagado_movil" checked class="text-indigo-600 focus:ring-0 mb-2" />
+									<span class="text-xs font-bold text-white">Pago Móvil / Transf.</span>
+								</label>
+								<label class="cursor-pointer border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center hover:border-slate-700 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/20 transition">
+									<input type="radio" name="estado_pago" value="pagado_efectivo" class="text-indigo-600 focus:ring-0 mb-2" />
+									<span class="text-xs font-bold text-white">Efectivo / Otro</span>
+								</label>
+								<label class="cursor-pointer border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center hover:border-slate-700 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/20 transition">
+									<input type="radio" name="estado_pago" value="pendiente" class="text-indigo-600 focus:ring-0 mb-2" />
+									<span class="text-xs font-bold text-amber-400">Aún no he pagado</span>
+								</label>
+							</div>
+
+							<!-- Opciones Pago Móvil -->
+							<div id="pago-movil-campos" class="space-y-3 pt-2">
+								<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Banco Emisor</label>
+										<input type="text" id="banco_emisor" placeholder="Ej. Banesco, Mercantil" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Número de Referencia</label>
+										<input type="text" id="referencia" placeholder="Últimos 6 dígitos" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Fecha de Pago</label>
+										<input type="date" id="fecha_pago" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
+								</div>
+							</div>
+
+							<!-- Opciones Efectivo -->
+							<div id="pago-efectivo-campos" class="hidden space-y-2 pt-2">
+								<label class="block text-[11px] font-semibold text-slate-400">¿Quién recibió el dinero en efectivo? *</label>
+								<input type="text" id="responsable_cobro" placeholder="Nombre del pastor, líder o encargado" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+							</div>
+
+							<!-- Mensaje para Pendiente -->
+							<div id="pago-pendiente-aviso" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300">
+								ℹ️ Puedes registrar tu cupo ahora mismo. Al finalizar te mostraremos los datos bancarios para completar tu aporte antes del evento.
+							</div>
+						</div>
+
+						<div id="form-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-xl border border-red-800"></div>
+
+						<button type="submit" id="submit-btn" class="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+							<span id="btn-text">Confirmar Inscripción</span>
+							<span id="btn-spinner" class="hidden animate-spin">⚪</span>
+						</button>
+					</form>
+				</div>
+
+				<!-- Vista del Ticket / Resumen posterior al envío -->
+				<div id="resumen-container" class="hidden space-y-6">
+					<div class="text-center space-y-2">
+						<div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+						<h2 class="text-2xl font-extrabold text-white">¡Inscripción Exitosa!</h2>
+						<p class="text-sm text-slate-300">Guarda o toma captura de pantalla a este comprobante.</p>
+					</div>
+
+					<!-- Tarjeta del Ticket -->
+					<div class="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+						<div class="flex justify-between items-center border-b border-slate-800 pb-3">
+							<span class="text-xs uppercase font-semibold text-slate-400">Código de Registro</span>
+							<span id="res-codigo" class="text-sm font-mono font-bold text-indigo-400 tracking-wider">TALLER-000000</span>
+						</div>
+
+						<div class="grid grid-cols-2 gap-3 text-sm">
+							<div>
+								<span class="block text-xs text-slate-400">Participante</span>
+								<strong id="res-nombre" class="text-white block font-medium"></strong>
+							</div>
+							<div>
+								<span class="block text-xs text-slate-400">Iglesia</span>
+								<strong id="res-iglesia" class="text-white block font-medium"></strong>
+							</div>
+							<div>
+								<span class="block text-xs text-slate-400">Teléfono</span>
+								<span id="res-telefono" class="text-slate-300 block"></span>
+							</div>
+							<div>
+								<span class="block text-xs text-slate-400">Ministerio</span>
+								<span id="res-area" class="text-slate-300 block"></span>
+							</div>
+						</div>
+
+						<div class="border-t border-slate-800 pt-3 flex justify-between items-center">
+							<span class="text-xs text-slate-400">Estado de pago</span>
+							<span id="res-estado" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
+						</div>
+					</div>
+
+					<!-- Datos Bancarios si aún no ha pagado -->
+					<div id="bloque-datos-pago" class="hidden p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+						<h3 class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+							💳 Datos para Formalizar tu Pago
+						</h3>
+						<p class="text-xs text-slate-300 leading-relaxed">
+							Para conservar tu cupo garantizado, realiza tu pago móvil o transferencia y repórtalo con tu código:
+						</p>
+
+						<div class="space-y-1.5 text-xs bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 font-mono text-slate-200">
+							<div class="flex justify-between"><span>Banco:</span> <strong>Banesco (0134)</strong></div>
+							<div class="flex justify-between"><span>Pago Móvil / CI:</span> <strong>V-18.452.120</strong></div>
+							<div class="flex justify-between"><span>Teléfono:</span> <strong>0414-9988776</strong></div>
+							<div class="flex justify-between"><span>Monto sugerido:</span> <strong class="text-emerald-400">$10 al cambio oficial</strong></div>
+						</div>
+
+						<div class="pt-2">
+							<a id="btn-reportar-whatsapp" target="_blank" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-md">
+								Enviar Comprobante por WhatsApp
+							</a>
+						</div>
+					</div>
+
+					<button type="button" onclick="window.print()" class="w-full py-3 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-sm font-semibold text-white transition">
+						Descargar o Imprimir Ticket (PDF)
+					</button>
+
+					<div class="text-center pt-2">
+						<button type="button" id="btn-nuevo-registro" class="text-xs text-indigo-400 hover:underline">
+							Realizar otra inscripción
+						</button>
+					</div>
+				</div>
+
+			</div>
+		</section>
+	</main>
+
+	<!-- Footer -->
+	<footer class="border-t border-slate-900 py-8 text-center text-xs text-slate-500">
+		<p>© 2026 Taller Transformados. Hospedado gratuitamente en Vercel con Supabase.</p>
+	</footer>
+
+	<!-- Scripts de Interacción Frontend -->
+	<script>
+		// Manejo de visibilidad de áreas
+		const radioSirve = document.querySelectorAll('input[name="sirve_area_radio"]');
+		const campoArea = document.getElementById('campo-area');
+		radioSirve.forEach(radio => {
+			radio.addEventListener('change', (e) => {
+				campoArea.classList.toggle('hidden', e.target.value !== 'si');
+			});
+		});
+
+		// Manejo de Iglesias dinámicas
+		const selectIglesia = document.getElementById('select-iglesia');
+		const nuevaIglesiaBox = document.getElementById('nueva-iglesia-box');
+		const inputNuevaIglesia = document.getElementById('input-nueva-iglesia');
+		const btnAnadirIglesia = document.getElementById('btn-anadir-iglesia');
+
+		selectIglesia.addEventListener('change', (e) => {
+			if (e.target.value === '__NUEVA__') {
+				nuevaIglesiaBox.classList.remove('hidden');
+				inputNuevaIglesia.focus();
+			} else {
+				nuevaIglesiaBox.classList.add('hidden');
+			}
+		});
+
+		btnAnadirIglesia.addEventListener('click', async () => {
+			const nombre = inputNuevaIglesia.value.trim();
+			if (!nombre) return;
+
+			btnAnadirIglesia.disabled = true;
+			btnAnadirIglesia.textContent = 'Guardando...';
+
+			try {
+				// Guardar en la base de datos
+				await fetch('/api/iglesias', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ nombre })
+				});
+
+				// Añadir al <select> del cliente
+				const opt = document.createElement('option');
+				opt.value = nombre;
+				opt.textContent = nombre;
+				opt.selected = true;
+				
+				// Insertar antes de la última opción
+				selectIglesia.insertBefore(opt, selectIglesia.lastElementChild);
+				nuevaIglesiaBox.classList.add('hidden');
+				inputNuevaIglesia.value = '';
+			} catch (err) {
+				console.error(err);
+			} finally {
+				btnAnadirIglesia.disabled = false;
+				btnAnadirIglesia.textContent = 'Añadir';
+			}
+		});
+
+		// Manejo de Estados de Pago
+		const radiosPago = document.querySelectorAll('input[name="estado_pago"]');
+		const bloquePagoMovil = document.getElementById('pago-movil-campos');
+		const bloqueEfectivo = document.getElementById('pago-efectivo-campos');
+		const bloqueAviso = document.getElementById('pago-pendiente-aviso');
+
+		radiosPago.forEach(radio => {
+			radio.addEventListener('change', (e) => {
+				bloquePagoMovil.classList.toggle('hidden', e.target.value !== 'pagado_movil');
+				bloqueEfectivo.classList.toggle('hidden', e.target.value !== 'pagado_efectivo');
+				bloqueAviso.classList.toggle('hidden', e.target.value !== 'pendiente');
+			});
+		});
+
+		// Envío del Formulario
+		const form = document.getElementById('registroForm');
+		const errorBox = document.getElementById('form-error');
+		const submitBtn = document.getElementById('submit-btn');
+		const btnText = document.getElementById('btn-text');
+		const btnSpinner = document.getElementById('btn-spinner');
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			errorBox.classList.add('hidden');
+
+			const iglesiaVal = selectIglesia.value;
+			if (!iglesiaVal || iglesiaVal === '__NUEVA__') {
+				errorBox.textContent = 'Por favor selecciona o añade una iglesia válida.';
+				errorBox.classList.remove('hidden');
+				return;
+			}
+
+			submitBtn.disabled = true;
+			btnSpinner.classList.remove('hidden');
+			btnText.textContent = 'Registrando...';
+
+			const formData = {
+				nombre_apellido: document.getElementById('nombre_apellido').value,
+				telefono: document.getElementById('telefono').value,
+				correo: document.getElementById('correo').value,
+				sirve_area: document.querySelector('input[name="sirve_area_radio"]:checked').value === 'si',
+				nombre_area: document.getElementById('nombre_area').value,
+				iglesia: iglesiaVal,
+				estado_pago: document.querySelector('input[name="estado_pago"]:checked').value,
+				banco_emisor: document.getElementById('banco_emisor').value,
+				referencia: document.getElementById('referencia').value,
+				fecha_pago: document.getElementById('fecha_pago').value,
+				responsable_cobro: document.getElementById('responsable_cobro').value,
+			};
+
+			try {
+				const res = await fetch('/api/registro', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(formData)
+				});
+
+				const result = await res.json();
+				if (!res.ok) throw new Error(result.error || 'Ocurrió un error en el registro');
+
+				mostrarTicket(result.data);
+			} catch (err) {
+				errorBox.textContent = err.message;
+				errorBox.classList.remove('hidden');
+			} finally {
+				submitBtn.disabled = false;
+				btnSpinner.classList.add('hidden');
+				btnText.textContent = 'Confirmar Inscripción';
+			}
+		});
+
+		function mostrarTicket(datos) {
+			document.getElementById('form-container').classList.add('hidden');
+			document.getElementById('resumen-container').classList.remove('hidden');
+
+			document.getElementById('res-codigo').textContent = datos.codigo;
+			document.getElementById('res-nombre').textContent = datos.nombre_apellido;
+			document.getElementById('res-iglesia').textContent = datos.iglesia;
+			document.getElementById('res-telefono').textContent = datos.telefono;
+			document.getElementById('res-area').textContent = datos.sirve_area ? datos.nombre_area : 'No sirve en área';
+
+			const estadoTag = document.getElementById('res-estado');
+			const bloquePago = document.getElementById('bloque-datos-pago');
+
+			if (datos.estado_pago === 'pendiente') {
+				estadoTag.textContent = 'Pendiente de Pago';
+				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30';
+				bloquePago.classList.remove('hidden');
+
+				// Link a WhatsApp
+				const msg = encodeURIComponent(`Hola! Acabo de registrarme para el Taller Transformados con el código ${datos.codigo} a nombre de ${datos.nombre_apellido}. Deseo reportar mi pago.`);
+				document.getElementById('btn-reportar-whatsapp').href = `https://wa.me/584149988776?text=${msg}`;
+			} else {
+				estadoTag.textContent = datos.estado_pago === 'pagado_movil' ? 'Pagado (Pago Móvil)' : 'Pagado (Efectivo)';
+				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+				bloquePago.classList.add('hidden');
+			}
+		}
+
+		document.getElementById('btn-nuevo-registro').addEventListener('click', () => {
+			form.reset();
+			campoArea.classList.add('hidden');
+			document.getElementById('resumen-container').classList.add('hidden');
+			document.getElementById('form-container').classList.remove('hidden');
+		});
+	</script>
+</Layout>
