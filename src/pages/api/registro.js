@@ -12,6 +12,7 @@ export async function POST({ request }) {
       sirve_area,
       nombre_area,
       iglesia,
+      plan_inversion,
       estado_pago,
       banco_emisor,
       referencia,
@@ -19,12 +20,11 @@ export async function POST({ request }) {
       responsable_cobro
     } = body;
 
-    if (!nombre_apellido || !telefono || !correo || !iglesia || !estado_pago) {
+    if (!nombre_apellido || !telefono || !correo || !iglesia || !estado_pago || !plan_inversion) {
       return new Response(JSON.stringify({ error: 'Faltan campos obligatorios' }), { status: 400 });
     }
 
-    // Código único de confirmación
-    const codigo = 'TALLER-' + Math.floor(100000 + Math.random() * 900000);
+    const codigo = 'PEP-' + Math.floor(100000 + Math.random() * 900000);
 
     const { data, error } = await supabase
       .from('inscritos')
@@ -37,6 +37,7 @@ export async function POST({ request }) {
           sirve_area: Boolean(sirve_area),
           nombre_area: sirve_area ? nombre_area : null,
           iglesia,
+          plan_inversion,
           estado_pago,
           banco_emisor: estado_pago === 'pagado_movil' ? banco_emisor : null,
           referencia: estado_pago === 'pagado_movil' ? referencia : null,

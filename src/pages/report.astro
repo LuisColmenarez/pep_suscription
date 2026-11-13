@@ -1,0 +1,301 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Acceso Administrativo | ADIEL Distrito 7">
+	<meta slot="head" name="robots" content="noindex, nofollow" />
+
+	<main class="max-w-6xl mx-auto px-4 py-12 space-y-8">
+		<!-- Pantalla de Bloqueo con Clave Maestra -->
+		<section id="login-box" class="max-w-md mx-auto mt-16 bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+			<div class="text-center space-y-2">
+				<span class="px-3 py-1 rounded-lg bg-sky-600 font-black text-xs tracking-wider text-white">ADIEL • DISTRITO 7</span>
+				<h1 class="text-xl font-bold text-white pt-2">Panel de Coordinación PEP</h1>
+				<p class="text-xs text-slate-400">Ingresa la clave maestra para consultar y descargar el listado oficial de inscritos.</p>
+			</div>
+
+			<form id="authForm" class="space-y-4">
+				<div>
+					<label for="clave_maestra" class="block text-xs font-semibold uppercase text-slate-300 mb-1.5">Clave Maestra</label>
+					<input
+						type="password"
+						id="clave_maestra"
+						required
+						placeholder="••••••••••••"
+						class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-sky-500 transition"
+					/>
+				</div>
+
+				<div id="auth-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-xl border border-red-800"></div>
+
+				<button type="submit" id="btn-acceder" class="w-full py-3.5 rounded-xl font-bold text-white bg-sky-600 hover:bg-sky-500 transition shadow-lg shadow-sky-600/20">
+					Desbloquear Reporte
+				</button>
+			</form>
+		</section>
+
+		<!-- Panel Desbloqueado -->
+		<section id="panel-box" class="hidden space-y-6">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
+				<div>
+					<span class="text-xs font-bold uppercase tracking-wider text-sky-400">ADIEL • Distrito 7</span>
+					<h2 class="text-2xl font-extrabold text-white">Inscritos — Taller PEP: Libro de Jonás</h2>
+					<p class="text-xs text-slate-400 mt-0.5">Viernes 20 y Sábado 21 de Noviembre • El Trigal, Valencia</p>
+				</div>
+
+				<div class="flex flex-wrap gap-3">
+					<button type="button" id="btn-descargar-pdf" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition shadow-lg shadow-emerald-600/25 flex items-center gap-2">
+						📄 Descargar Listado en PDF
+					</button>
+					<button type="button" id="btn-cerrar-sesion" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+						Bloquear
+					</button>
+				</div>
+			</div>
+
+			<!-- Tarjetas de Métricas -->
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+				<div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+					<span class="text-xs text-slate-400">Total Inscritos</span>
+					<strong id="stat-total" class="block text-2xl font-extrabold text-white mt-1">0</strong>
+				</div>
+				<div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+					<span class="text-xs text-slate-400">Plan $20 (Con Almuerzo)</span>
+					<strong id="stat-plan20" class="block text-2xl font-extrabold text-emerald-400 mt-1">0</strong>
+				</div>
+				<div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+					<span class="text-xs text-slate-400">Plan $12 (Material/Café)</span>
+					<strong id="stat-plan12" class="block text-2xl font-extrabold text-sky-400 mt-1">0</strong>
+				</div>
+				<div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+					<span class="text-xs text-slate-400">Pagados / Pendientes</span>
+					<div class="mt-1 flex items-baseline gap-2">
+						<strong id="stat-pagados" class="text-2xl font-extrabold text-emerald-400">0</strong>
+						<span class="text-xs text-slate-400">/</span>
+						<strong id="stat-pendientes" class="text-lg font-bold text-amber-400">0</strong>
+					</div>
+				</div>
+			</div>
+
+			<!-- Vista Previa en Tabla -->
+			<div class="bg-slate-900/80 border border-slate-800 rounded-3xl overflow-hidden">
+				<div class="overflow-x-auto">
+					<table class="w-full text-left border-collapse text-xs">
+						<thead>
+							<tr class="bg-slate-950/90 text-slate-400 uppercase border-b border-slate-800">
+								<th class="py-3.5 px-4">#</th>
+								<th class="py-3.5 px-4">Código</th>
+								<th class="py-3.5 px-4">Participante</th>
+								<th class="py-3.5 px-4">Iglesia</th>
+								<th class="py-3.5 px-4">Área</th>
+								<th class="py-3.5 px-4">Teléfono</th>
+								<th class="py-3.5 px-4">Plan</th>
+								<th class="py-3.5 px-4">Pago / Detalle</th>
+							</tr>
+						</thead>
+						<tbody id="tabla-inscritos" class="divide-y divide-slate-800/70 text-slate-200">
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script>
+		import { jsPDF } from 'jspdf';
+		import autoTable from 'jspdf-autotable';
+
+		let datosInscritos = [];
+
+		const authForm = document.getElementById('authForm');
+		const authError = document.getElementById('auth-error');
+		const btnAcceder = document.getElementById('btn-acceder');
+
+		authForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			authError.classList.add('hidden');
+			btnAcceder.disabled = true;
+			btnAcceder.textContent = 'Verificando...';
+
+			const clave = document.getElementById('clave_maestra').value;
+
+			try {
+				const res = await fetch('/api/exportar', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ clave })
+				});
+
+				const data = await res.json();
+				if (!res.ok) throw new Error(data.error || 'Error de autenticación');
+
+				datosInscritos = data.inscritos;
+				renderizarPanel(datosInscritos);
+
+				document.getElementById('login-box').classList.add('hidden');
+				document.getElementById('panel-box').classList.remove('hidden');
+			} catch (err) {
+				authError.textContent = err.message;
+				authError.classList.remove('hidden');
+			} finally {
+				btnAcceder.disabled = false;
+				btnAcceder.textContent = 'Desbloquear Reporte';
+			}
+		});
+
+		function formatearPago(item) {
+			if (item.estado_pago === 'pagado_movil') {
+				return `Pago Móvil | ${item.banco_emisor || ''} Ref: ${item.referencia || 'N/A'} (${item.fecha_pago || ''})`;
+			}
+			if (item.estado_pago === 'pagado_efectivo') {
+				return `Efectivo | Recibió: ${item.responsable_cobro || 'N/A'}`;
+			}
+			return 'PENDIENTE DE PAGO';
+		}
+
+		function renderizarPanel(lista) {
+			const total = lista.length;
+			const plan20 = lista.filter(i => i.plan_inversion === '20_usd').length;
+			const plan12 = lista.filter(i => i.plan_inversion === '12_usd').length;
+			const pendientes = lista.filter(i => i.estado_pago === 'pendiente').length;
+			const pagados = total - pendientes;
+
+			document.getElementById('stat-total').textContent = total;
+			document.getElementById('stat-plan20').textContent = plan20;
+			document.getElementById('stat-plan12').textContent = plan12;
+			document.getElementById('stat-pagados').textContent = pagados;
+			document.getElementById('stat-pendientes').textContent = pendientes;
+
+			const tbody = document.getElementById('tabla-inscritos');
+			if (lista.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">Aún no hay participantes registrados.</td></tr>`;
+				return;
+			}
+
+			tbody.innerHTML = lista.map((item, idx) => {
+				const esPendiente = item.estado_pago === 'pendiente';
+				const planTxt = item.plan_inversion === '20_usd' ? '$20 (Almuerzo)' : '$12 (Básico)';
+				return `
+					<tr class="hover:bg-slate-800/40">
+						<td class="py-3 px-4 font-mono text-slate-400">${idx + 1}</td>
+						<td class="py-3 px-4 font-mono font-bold text-sky-400">${item.codigo}</td>
+						<td class="py-3 px-4 font-semibold text-white">
+							${item.nombre_apellido}
+							<span class="block text-[11px] font-normal text-slate-400">${item.correo}</span>
+						</td>
+						<td class="py-3 px-4">${item.iglesia}</td>
+						<td class="py-3 px-4">${item.sirve_area && item.nombre_area ? item.nombre_area : '—'}</td>
+						<td class="py-3 px-4 font-mono">${item.telefono}</td>
+						<td class="py-3 px-4 font-semibold ${item.plan_inversion === '20_usd' ? 'text-emerald-400' : 'text-sky-300'}">${planTxt}</td>
+						<td class="py-3 px-4 ${esPendiente ? 'text-amber-400 font-bold' : 'text-slate-300'}">${formatearPago(item)}</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		// Generación del PDF Oficial
+		document.getElementById('btn-descargar-pdf').addEventListener('click', () => {
+			const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+			// Encabezado Institucional
+			doc.setFillColor(15, 23, 42);
+			doc.rect(0, 0, 280, 28, 'F');
+
+			doc.setTextColor(255, 255, 255);
+			doc.setFontSize(14);
+			doc.setFont('helvetica', 'bold');
+			doc.text('ADIEL • DISTRITO 7 — REPORTE OFICIAL DE INSCRITOS', 14, 12);
+
+			doc.setFontSize(9.5);
+			doc.setFont('helvetica', 'normal');
+			doc.setTextColor(186, 230, 253);
+			doc.text('Taller PEP: Predicación Expositiva de la Palabra (Libro de Jonás) | 20 y 21 de Noviembre — El Trigal, Valencia', 14, 19);
+
+			const fechaEmision = new Date().toLocaleString('es-VE');
+			doc.setFontSize(8);
+			doc.setTextColor(203, 213, 225);
+			doc.text(`Emitido: ${fechaEmision}`, 265, 12, { align: 'right' });
+
+			// Resumen numérico
+			const total = datosInscritos.length;
+			const plan20 = datosInscritos.filter(i => i.plan_inversion === '20_usd').length;
+			const plan12 = datosInscritos.filter(i => i.plan_inversion === '12_usd').length;
+			const pendientes = datosInscritos.filter(i => i.estado_pago === 'pendiente').length;
+			const pagados = total - pendientes;
+
+			doc.setTextColor(30, 41, 59);
+			doc.setFontSize(9.5);
+			doc.setFont('helvetica', 'bold');
+			doc.text(
+				`Resumen:   Total Inscritos: ${total}    |    Plan $20 (con Almuerzo): ${plan20}    |    Plan $12 (Material/Café): ${plan12}    |    Pagados: ${pagados}    |    Pendientes: ${pendientes}`,
+				14,
+				36
+			);
+
+			// Filas de la tabla
+			const filas = datosInscritos.map((item, index) => [
+				index + 1,
+				item.codigo,
+				item.nombre_apellido,
+				item.iglesia,
+				item.sirve_area && item.nombre_area ? item.nombre_area : 'No',
+				item.telefono,
+				item.plan_inversion === '20_usd' ? '$20 (Almuerzo)' : '$12 (Básico)',
+				formatearPago(item)
+			]);
+
+			autoTable(doc, {
+				startY: 41,
+				head: [['#', 'Código', 'Nombre y Apellido', 'Iglesia', 'Área Servicio', 'Teléfono', 'Plan', 'Estado y Detalle de Pago']],
+				body: filas,
+				theme: 'grid',
+				styles: {
+					fontSize: 8,
+					cellPadding: 2.5,
+					textColor: [15, 23, 42],
+					lineColor: [203, 213, 225],
+					lineWidth: 0.2
+				},
+				headStyles: {
+					fillColor: [3, 105, 161],
+					textColor: [255, 255, 255],
+					fontStyle: 'bold',
+					halign: 'left'
+				},
+				alternateRowStyles: {
+					fillColor: [248, 250, 252]
+				},
+				columnStyles: {
+					0: { cellWidth: 9, halign: 'center' },
+					1: { cellWidth: 23, fontStyle: 'bold' },
+					2: { cellWidth: 42 },
+					3: { cellWidth: 45 },
+					4: { cellWidth: 28 },
+					5: { cellWidth: 26 },
+					6: { cellWidth: 25 },
+					7: { cellWidth: 'auto' }
+				},
+				didParseCell: function (data) {
+					if (data.section === 'body' && data.column.index === 7) {
+						if (data.cell.raw === 'PENDIENTE DE PAGO') {
+							data.cell.styles.textColor = [180, 83, 9];
+							data.cell.styles.fontStyle = 'bold';
+						} else {
+							data.cell.styles.textColor = [4, 120, 87];
+						}
+					}
+				}
+			});
+
+			const fechaArchivo = new Date().toISOString().split('T')[0];
+			doc.save(`Inscritos_PEP_Jonas_ADIEL_D7_${fechaArchivo}.pdf`);
+		});
+
+		document.getElementById('btn-cerrar-sesion').addEventListener('click', () => {
+			datosInscritos = [];
+			authForm.reset();
+			document.getElementById('panel-box').classList.add('hidden');
+			document.getElementById('login-box').classList.remove('hidden');
+		});
+	</script>
+</Layout>

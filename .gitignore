@@ -1,0 +1,30 @@
+# Dependencias
+node_modules/
+
+# Archivos de compilación de Astro y Vercel
+dist/
+.astro/
+.vercel/
+
+# Variables de entorno (NUNCA subir tus claves secretas a GitHub)
+.env
+.env.*
+!.env.example
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores e IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Logs y caché
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
