@@ -14,6 +14,7 @@ export async function POST({ request }) {
       iglesia,
       plan_inversion,
       estado_pago,
+      monto_bs,
       banco_emisor,
       referencia,
       fecha_pago,
@@ -25,6 +26,7 @@ export async function POST({ request }) {
     }
 
     const codigo = 'PEP-' + Math.floor(100000 + Math.random() * 900000);
+    const montoNumerico = estado_pago !== 'pendiente' && monto_bs ? parseFloat(monto_bs) : null;
 
     const { data, error } = await supabase
       .from('inscritos')
@@ -39,6 +41,7 @@ export async function POST({ request }) {
           iglesia,
           plan_inversion,
           estado_pago,
+          monto_bs: montoNumerico,
           banco_emisor: estado_pago === 'pagado_movil' ? banco_emisor : null,
           referencia: estado_pago === 'pagado_movil' ? referencia : null,
           fecha_pago: estado_pago === 'pagado_movil' ? fecha_pago : null,

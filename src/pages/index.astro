@@ -295,7 +295,11 @@ try {
 									</div>
 								</div>
 
-								<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado (Bs.) *</label>
+										<input type="number" step="0.01" min="0" id="monto_bs_movil" placeholder="Ej. 1250.00" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
 									<div>
 										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Banco Emisor</label>
 										<input type="text" id="banco_emisor" placeholder="Ej. Mercantil, Banesco" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
@@ -317,9 +321,17 @@ try {
 							</div>
 
 							<!-- Opciones Efectivo -->
-							<div id="pago-efectivo-campos" class="hidden space-y-2 pt-2">
-								<label class="block text-[11px] font-semibold text-slate-400">Nombre de la persona responsable que recibió el dinero *</label>
-								<input type="text" id="responsable_cobro" placeholder="Nombre y apellido del encargado" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+							<div id="pago-efectivo-campos" class="hidden space-y-3 pt-2">
+								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado</label>
+										<input type="number" step="0.01" min="0" id="monto_bs_efectivo" placeholder="" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
+									<div>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Responsable que recibió *</label>
+										<input type="text" id="responsable_cobro" placeholder="Nombre del encargado" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+									</div>
+								</div>
 							</div>
 
 							<!-- Mensaje para Pendiente -->
@@ -594,6 +606,13 @@ try {
 			btnSpinner.classList.remove('hidden');
 			btnText.textContent = 'Registrando...';
 
+			const estadoPagoActual = document.querySelector('input[name="estado_pago"]:checked').value;
+			const montoBsVal = estadoPagoActual === 'pagado_movil'
+				? document.getElementById('monto_bs_movil').value
+				: estadoPagoActual === 'pagado_efectivo'
+					? document.getElementById('monto_bs_efectivo').value
+					: null;
+
 			const formData = {
 				nombre_apellido: document.getElementById('nombre_apellido').value,
 				telefono: document.getElementById('telefono').value,
@@ -602,7 +621,8 @@ try {
 				nombre_area: document.getElementById('nombre_area').value,
 				iglesia: iglesiaVal,
 				plan_inversion: document.querySelector('input[name="plan_inversion"]:checked').value,
-				estado_pago: document.querySelector('input[name="estado_pago"]:checked').value,
+				estado_pago: estadoPagoActual,
+				monto_bs: montoBsVal,
 				banco_emisor: document.getElementById('banco_emisor').value,
 				referencia: document.getElementById('referencia').value,
 				fecha_pago: document.getElementById('fecha_pago').value,
@@ -655,6 +675,10 @@ try {
 			let detallePagoWhatsapp = '';
 			let notaFinalWhatsapp = '';
 
+			const montoFormateado = datos.monto_bs
+				? `${Number(datos.monto_bs).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+				: null;
+
 			if (datos.estado_pago === 'pagado_movil') {
 				estadoTag.textContent = 'Pagado (Pago Móvil)';
 				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
@@ -662,6 +686,7 @@ try {
 
 				detallePagoWhatsapp =
 					`💳 *Estado:* Pagado (Pago Móvil / Transf.)\n` +
+					(montoFormateado ? `💰 *Monto pagado:* ${montoFormateado}\n` : '') +
 					`🏦 *Banco emisor:* ${datos.banco_emisor || 'No especificado'}\n` +
 					`🔢 *Referencia:* ${datos.referencia || 'No especificada'}\n` +
 					`📅 *Fecha de pago:* ${datos.fecha_pago || 'No especificada'}`;
@@ -674,9 +699,9 @@ try {
 
 				detallePagoWhatsapp =
 					`💵 *Estado:* Pagado en Efectivo / Otro\n` +
+					(montoFormateado ? `💰 *Monto pagado:* ${montoFormateado}\n` : '') +
 					`👤 *Recibido por:* ${datos.responsable_cobro || 'No especificado'}`;
 				notaFinalWhatsapp = `✅ _Registro enviado para confirmación de cupo._`;
-
 			} else {
 				estadoTag.textContent = 'Pendiente de Pago';
 				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30';

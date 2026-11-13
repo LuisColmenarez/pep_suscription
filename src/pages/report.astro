@@ -152,12 +152,18 @@ import Layout from '../layouts/Layout.astro';
 			}
 		});
 
+		function formatearMontoBs(valor) {
+			if (!valor) return '';
+			return `${Number(valor).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		}
+
 		function formatearPago(item) {
+			const montoTxt = item.monto_bs ? ` | ${formatearMontoBs(item.monto_bs)}` : '';
 			if (item.estado_pago === 'pagado_movil') {
-				return `Pago Móvil | ${item.banco_emisor || ''} Ref: ${item.referencia || 'N/A'} (${item.fecha_pago || ''})`;
+				return `Pago Móvil${montoTxt} | ${item.banco_emisor || ''} Ref: ${item.referencia || 'N/A'} (${item.fecha_pago || ''})`;
 			}
 			if (item.estado_pago === 'pagado_efectivo') {
-				return `Efectivo | Recibió: ${item.responsable_cobro || 'N/A'}`;
+				return `Efectivo${montoTxt} | Recibió: ${item.responsable_cobro || 'N/A'}`;
 			}
 			return 'PENDIENTE DE PAGO';
 		}
@@ -233,8 +239,12 @@ import Layout from '../layouts/Layout.astro';
 			doc.setTextColor(30, 41, 59);
 			doc.setFontSize(9.5);
 			doc.setFont('helvetica', 'bold');
+			
+			const totalBs = datosInscritos.reduce((acc, item) => acc + (Number(item.monto_bs) || 0), 0);
+			const totalBsTxt = formatearMontoBs(totalBs) || '0,00';
+
 			doc.text(
-				`Resumen:   Total Inscritos: ${total}    |    Plan $20 (con Almuerzo): ${plan20}    |    Plan $12 (Material/Café): ${plan12}    |    Pagados: ${pagados}    |    Pendientes: ${pendientes}`,
+				`Resumen:  Total: ${total}  |  Plan $20: ${plan20}  |  Plan $12: ${plan12}  |  Pagados: ${pagados}  |  Pendientes: ${pendientes}  |  Total Reportado: ${totalBsTxt}`,
 				14,
 				36
 			);
