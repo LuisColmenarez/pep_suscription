@@ -11,12 +11,12 @@ import Layout from '../layouts/Layout.astro';
 			<div class="text-center space-y-2">
 				<span class="px-3 py-1 rounded-lg bg-sky-600 font-black text-xs tracking-wider text-white">ADIEL • DISTRITO 7</span>
 				<h1 class="text-xl font-bold text-white pt-2">Panel de Coordinación PEP</h1>
-				<p class="text-xs text-slate-400">Ingresa la clave maestra para consultar y descargar el listado oficial de inscritos.</p>
+				<p class="text-xs text-slate-400">Ingresa la clave para consultar y descargar el listado oficial de inscritos.</p>
 			</div>
 
 			<form id="authForm" class="space-y-4">
 				<div>
-					<label for="clave_maestra" class="block text-xs font-semibold uppercase text-slate-300 mb-1.5">Clave Maestra</label>
+					<label for="clave_maestra" class="block text-xs font-semibold uppercase text-slate-300 mb-1.5">Clave</label>
 					<input
 						type="password"
 						id="clave_maestra"
@@ -29,9 +29,15 @@ import Layout from '../layouts/Layout.astro';
 				<div id="auth-error" class="hidden text-xs text-red-400 bg-red-950/50 p-3 rounded-xl border border-red-800"></div>
 
 				<button type="submit" id="btn-acceder" class="w-full py-3.5 rounded-xl font-bold text-white bg-sky-600 hover:bg-sky-500 transition shadow-lg shadow-sky-600/20">
-					Desbloquear Reporte
+					Ingresar
 				</button>
 			</form>
+
+			<div class="pt-2 border-t border-slate-800/80 text-center">
+				<a href="/" class="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white border border-slate-800 transition">
+					← Volver al inicio
+				</a>
+			</div>
 		</section>
 
 		<!-- Panel Desbloqueado -->
@@ -44,6 +50,9 @@ import Layout from '../layouts/Layout.astro';
 				</div>
 
 				<div class="flex flex-wrap gap-3">
+					<a href="/" class="px-4 py-3 rounded-xl bg-slate-950/80 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition flex items-center">
+						← Inicio
+					</a>
 					<button type="button" id="btn-descargar-pdf" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition shadow-lg shadow-emerald-600/25 flex items-center gap-2">
 						📄 Descargar Listado en PDF
 					</button>
@@ -197,26 +206,24 @@ import Layout from '../layouts/Layout.astro';
 		document.getElementById('btn-descargar-pdf').addEventListener('click', () => {
 			const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
 
-			// Encabezado Institucional
 			doc.setFillColor(15, 23, 42);
 			doc.rect(0, 0, 280, 28, 'F');
 
 			doc.setTextColor(255, 255, 255);
 			doc.setFontSize(14);
 			doc.setFont('helvetica', 'bold');
-			doc.text('ADIEL • DISTRITO 7 — REPORTE OFICIAL DE INSCRITOS', 14, 12);
+			doc.text('ADIEL • DISTRITO 7 — REPORTE DE INSCRITOS', 14, 12);
 
 			doc.setFontSize(9.5);
 			doc.setFont('helvetica', 'normal');
 			doc.setTextColor(186, 230, 253);
-			doc.text('Taller PEP: Predicación Expositiva de la Palabra (Libro de Jonás) | 20 y 21 de Noviembre — El Trigal, Valencia', 14, 19);
+			doc.text('Taller PEP: Predicación Expositiva de la Palabra (Libro de Jonás) | 20 y 21 de Noviembre — I.E.L. El Trigal, Valencia', 14, 19);
 
 			const fechaEmision = new Date().toLocaleString('es-VE');
 			doc.setFontSize(8);
 			doc.setTextColor(203, 213, 225);
 			doc.text(`Emitido: ${fechaEmision}`, 265, 12, { align: 'right' });
 
-			// Resumen numérico
 			const total = datosInscritos.length;
 			const plan20 = datosInscritos.filter(i => i.plan_inversion === '20_usd').length;
 			const plan12 = datosInscritos.filter(i => i.plan_inversion === '12_usd').length;
@@ -232,7 +239,6 @@ import Layout from '../layouts/Layout.astro';
 				36
 			);
 
-			// Filas de la tabla
 			const filas = datosInscritos.map((item, index) => [
 				index + 1,
 				item.codigo,
