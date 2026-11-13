@@ -301,15 +301,15 @@ try {
 										<input type="number" step="0.01" min="0" id="monto_bs_movil" placeholder="Ej. 1250.00" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
-										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Banco Emisor</label>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Banco Emisor *</label>
 										<input type="text" id="banco_emisor" placeholder="Ej. Mercantil, Banesco" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
-										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Número de Referencia</label>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Número de Referencia *</label>
 										<input type="text" id="referencia" placeholder="Últimos 6 dígitos" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
-										<label class="block text-[11px] font-semibold text-slate-400 mb-1" for="fecha_pago">Fecha de Pago</label>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1" for="fecha_pago">Fecha de Pago *</label>
 										<input
 											type="date"
 											id="fecha_pago"
@@ -324,7 +324,7 @@ try {
 							<div id="pago-efectivo-campos" class="hidden space-y-3 pt-2">
 								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div>
-										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado</label>
+										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado *</label>
 										<input type="number" step="0.01" min="0" id="monto_bs_efectivo" placeholder="" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
@@ -570,17 +570,38 @@ try {
 			}
 		});
 
-		// Manejo de Estados de Pago
+		// Manejo de Estados de Pago y validación dinámica (required)
 		const radiosPago = document.querySelectorAll('input[name="estado_pago"]');
 		const bloquePagoMovil = document.getElementById('pago-movil-campos');
 		const bloqueEfectivo = document.getElementById('pago-efectivo-campos');
 		const bloqueAviso = document.getElementById('pago-pendiente-aviso');
 
+		const camposMovilReq = ['monto_bs_movil', 'banco_emisor', 'referencia', 'fecha_pago'];
+		const camposEfectivoReq = ['monto_bs_efectivo', 'responsable_cobro'];
+
+		function actualizarRequeridosPago(estado) {
+			bloquePagoMovil.classList.toggle('hidden', estado !== 'pagado_movil');
+			bloqueEfectivo.classList.toggle('hidden', estado !== 'pagado_efectivo');
+			bloqueAviso.classList.toggle('hidden', estado !== 'pendiente');
+
+			camposMovilReq.forEach(id => {
+				const el = document.getElementById(id);
+				if (el) el.required = (estado === 'pagado_movil');
+			});
+
+			camposEfectivoReq.forEach(id => {
+				const el = document.getElementById(id);
+				if (el) el.required = (estado === 'pagado_efectivo');
+			});
+		}
+
+		// Inicializar estado por defecto al cargar la página
+		const estadoInicial = document.querySelector('input[name="estado_pago"]:checked')?.value || 'pagado_movil';
+		actualizarRequeridosPago(estadoInicial);
+
 		radiosPago.forEach(radio => {
 			radio.addEventListener('change', (e) => {
-				bloquePagoMovil.classList.toggle('hidden', e.target.value !== 'pagado_movil');
-				bloqueEfectivo.classList.toggle('hidden', e.target.value !== 'pagado_efectivo');
-				bloqueAviso.classList.toggle('hidden', e.target.value !== 'pendiente');
+				actualizarRequeridosPago(e.target.value);
 			});
 		});
 
@@ -706,7 +727,7 @@ try {
 				estadoTag.textContent = 'Pendiente de Pago';
 				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30';
 				bloquePago.classList.remove('hidden');
-				document.getElementById('res-monto-pagar').textContent = esPlan20 ? '$20 USD (al cambio)' : '$12 USD (al cambio)';
+				document.getElementById('res-monto-pagar').textContent = esPlan20 ? '$20 USD (al cambio BCV)' : '$12 USD (al cambio BCV)';
 
 				detallePagoWhatsapp = `⏳ *Estado:* Pendiente por cancelar`;
 				notaFinalWhatsapp = `📌 _En breve realizaré el aporte y enviaré el capture por este medio._`;
@@ -779,6 +800,7 @@ LECTURAS COMPLEMENTARIAS:
 
 		document.getElementById('btn-nuevo-registro').addEventListener('click', () => {
 			form.reset();
+			actualizarRequeridosPago('pagado_movil');
 			if (inputFechaPago) inputFechaPago.value = new Date().toISOString().split('T')[0];
 			campoArea.classList.add('hidden');
 			document.getElementById('resumen-container').classList.add('hidden');

@@ -22,7 +22,25 @@ export async function POST({ request }) {
     } = body;
 
     if (!nombre_apellido || !telefono || !correo || !iglesia || !estado_pago || !plan_inversion) {
-      return new Response(JSON.stringify({ error: 'Faltan campos obligatorios' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'Faltan campos obligatorios generales.' }), { status: 400 });
+    }
+
+    if (estado_pago === 'pagado_movil') {
+      if (!monto_bs || !banco_emisor?.trim() || !referencia?.trim() || !fecha_pago) {
+        return new Response(
+          JSON.stringify({ error: 'Para Pago Móvil debes completar monto, banco emisor, referencia y fecha.' }),
+          { status: 400 }
+        );
+      }
+    }
+
+    if (estado_pago === 'pagado_efectivo') {
+      if (!monto_bs || !responsable_cobro?.trim()) {
+        return new Response(
+          JSON.stringify({ error: 'Para pago en efectivo debes indicar el monto y el nombre de quien recibió el dinero.' }),
+          { status: 400 }
+        );
+      }
     }
 
     const codigo = 'PEP-' + Math.floor(100000 + Math.random() * 900000);
@@ -42,10 +60,10 @@ export async function POST({ request }) {
           plan_inversion,
           estado_pago,
           monto_bs: montoNumerico,
-          banco_emisor: estado_pago === 'pagado_movil' ? banco_emisor : null,
-          referencia: estado_pago === 'pagado_movil' ? referencia : null,
+          banco_emisor: estado_pago === 'pagado_movil' ? banco_emisor.trim() : null,
+          referencia: estado_pago === 'pagado_movil' ? referencia.trim() : null,
           fecha_pago: estado_pago === 'pagado_movil' ? fecha_pago : null,
-          responsable_cobro: estado_pago === 'pagado_efectivo' ? responsable_cobro : null
+          responsable_cobro: estado_pago === 'pagado_efectivo' ? responsable_cobro.trim() : null
         }
       ])
       .select()
