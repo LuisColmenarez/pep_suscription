@@ -693,12 +693,31 @@ try {
 			const estadoTag = document.getElementById('res-estado');
 			const bloquePago = document.getElementById('bloque-datos-pago');
 
-			let detallePagoWhatsapp = '';
-			let notaFinalWhatsapp = '';
+			const eCruz   = String.fromCodePoint(0x271D, 0xFE0F);
+			const eTicket = String.fromCodePoint(0x1F39F, 0xFE0F);
+			const eUser   = String.fromCodePoint(0x1F464);
+			const eChurch = String.fromCodePoint(0x26EA);
+			const eHands  = String.fromCodePoint(0x1F64C);
+			const ePhone  = String.fromCodePoint(0x1F4F1);
+			const eMail   = String.fromCodePoint(0x2709, 0xFE0F);
+			const ePlan   = String.fromCodePoint(0x1F4CB);
+			const eCard   = String.fromCodePoint(0x1F4B3);
+			const eCash   = String.fromCodePoint(0x1F4B5);
+			const eMoney  = String.fromCodePoint(0x1F4B0);
+			const eBank   = String.fromCodePoint(0x1F3E6);
+			const eNum    = String.fromCodePoint(0x1F522);
+			const eDate   = String.fromCodePoint(0x1F4C5);
+			const eClock  = String.fromCodePoint(0x23F3);
+			const eClip   = String.fromCodePoint(0x1F4CE);
+			const eCheck  = String.fromCodePoint(0x2705);
+			const ePin    = String.fromCodePoint(0x1F4CC);
 
 			const montoFormateado = datos.monto_bs
 				? `${Number(datos.monto_bs).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 				: null;
+
+			let detallePagoWhatsapp = '';
+			let notaFinalWhatsapp = '';
 
 			if (datos.estado_pago === 'pagado_movil') {
 				estadoTag.textContent = 'Pagado (Pago Móvil)';
@@ -706,12 +725,12 @@ try {
 				bloquePago.classList.add('hidden');
 
 				detallePagoWhatsapp =
-					`💳 *Estado:* Pagado (Pago Móvil / Transf.)\n` +
-					(montoFormateado ? `💰 *Monto pagado:* ${montoFormateado}\n` : '') +
-					`🏦 *Banco emisor:* ${datos.banco_emisor || 'No especificado'}\n` +
-					`🔢 *Referencia:* ${datos.referencia || 'No especificada'}\n` +
-					`📅 *Fecha de pago:* ${datos.fecha_pago || 'No especificada'}`;
-				notaFinalWhatsapp = `📎 _Adjunto mi comprobante de pago para validación._`;
+					`${eCard} *Estado:* Pagado (Pago Móvil / Transf.)\n` +
+					(montoFormateado ? `${eMoney} *Monto pagado:* ${montoFormateado}\n` : '') +
+					`${eBank} *Banco emisor:* ${datos.banco_emisor || 'No especificado'}\n` +
+					`${eNum} *Referencia:* ${datos.referencia || 'No especificada'}\n` +
+					`${eDate} *Fecha de pago:* ${datos.fecha_pago || 'No especificada'}`;
+				notaFinalWhatsapp = `${eClip} _Adjunto mi comprobante de pago para validación._`;
 
 			} else if (datos.estado_pago === 'pagado_efectivo') {
 				estadoTag.textContent = 'Pagado (Efectivo)';
@@ -719,18 +738,19 @@ try {
 				bloquePago.classList.add('hidden');
 
 				detallePagoWhatsapp =
-					`💵 *Estado:* Pagado en Efectivo / Otro\n` +
-					(montoFormateado ? `💰 *Monto pagado:* ${montoFormateado}\n` : '') +
-					`👤 *Recibido por:* ${datos.responsable_cobro || 'No especificado'}`;
-				notaFinalWhatsapp = `✅ _Registro enviado para confirmación de cupo._`;
+					`${eCash} *Estado:* Pagado en Efectivo / Otro\n` +
+					(montoFormateado ? `${eMoney} *Monto pagado:* ${montoFormateado}\n` : '') +
+					`${eUser} *Recibido por:* ${datos.responsable_cobro || 'No especificado'}`;
+				notaFinalWhatsapp = `${eCheck} _Registro enviado para confirmación de cupo._`;
+
 			} else {
 				estadoTag.textContent = 'Pendiente de Pago';
 				estadoTag.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30';
 				bloquePago.classList.remove('hidden');
 				document.getElementById('res-monto-pagar').textContent = esPlan20 ? '$20 USD (al cambio BCV)' : '$12 USD (al cambio BCV)';
 
-				detallePagoWhatsapp = `⏳ *Estado:* Pendiente por cancelar`;
-				notaFinalWhatsapp = `📌 _En breve realizaré el aporte y enviaré el capture por este medio._`;
+				detallePagoWhatsapp = `${eClock} *Estado:* Pendiente por cancelar`;
+				notaFinalWhatsapp = `${ePin} _En breve realizaré el aporte y enviaré el capture por este medio._`;
 			}
 
 			const servicioTexto = datos.sirve_area && datos.nombre_area
@@ -738,24 +758,24 @@ try {
 				: 'No';
 
 			const mensajeWhatsapp =
-				`✝️ *REGISTRO OFICIAL — TALLER PEP*\n` +
+				`${eCruz} *REGISTRO - TALLER PEP*\n` +
 				`_Predicación Expositiva de la Palabra: Libro de Jonás_\n` +
-				`*ADIEL • Distrito 7*\n` +
-				`━━━━━━━━━━━━━━━━━━━━\n` +
-				`🎟️ *Código:* ${datos.codigo}\n` +
-				`👤 *Participante:* ${datos.nombre_apellido}\n` +
-				`⛪ *Iglesia:* ${datos.iglesia}\n` +
-				`🙌 *Área de servicio:* ${servicioTexto}\n` +
-				`📱 *Teléfono:* ${datos.telefono}\n` +
-				`✉️ *Correo:* ${datos.correo}\n` +
-				`━━━━━━━━━━━━━━━━━━━━\n` +
-				`📋 *Plan:* ${planTexto}\n` +
+				`*ADIEL - Distrito 7*\n` +
+				`----------------------------\n` +
+				`${eTicket} *Código:* ${datos.codigo}\n` +
+				`${eUser} *Participante:* ${datos.nombre_apellido}\n` +
+				`${eChurch} *Iglesia:* ${datos.iglesia}\n` +
+				`${eHands} *Área de servicio:* ${servicioTexto}\n` +
+				`${ePhone} *Teléfono:* ${datos.telefono}\n` +
+				`${eMail} *Correo:* ${datos.correo}\n` +
+				`----------------------------\n` +
+				`${ePlan} *Plan:* ${planTexto}\n` +
 				`${detallePagoWhatsapp}\n` +
-				`━━━━━━━━━━━━━━━━━━━━\n` +
+				`----------------------------\n` +
 				`${notaFinalWhatsapp}`;
 
 			document.getElementById('btn-enviar-resumen-whatsapp').href =
-				`https://wa.me/584122027166?text=${encodeURIComponent(mensajeWhatsapp)}`;
+				`https://api.whatsapp.com/send?phone=584122027166&text=${encodeURIComponent(mensajeWhatsapp)}`;
 		}
 
 		// Botón para copiar la tarea previa
