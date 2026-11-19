@@ -129,7 +129,18 @@ import Layout from '../layouts/Layout.astro';
 
 			<form id="formCertificar" class="space-y-4">
 				<input type="hidden" id="cert-id" />
-
+				<div>
+					<label for="cert-plan" class="block text-xs font-semibold text-slate-300 mb-1">
+						Plan de Inversión <span class="text-slate-500 font-normal">(Editable)</span>
+					</label>
+					<select
+						id="cert-plan"
+						class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition"
+					>
+						<option value="20_usd">$20 USD — Completo (Material + Almuerzo)</option>
+						<option value="12_usd">$12 USD — Básico (Material y Café)</option>
+					</select>
+				</div>
 				<div>
 					<label for="cert-monto" class="block text-xs font-semibold text-slate-300 mb-1">
 						Monto Pagado en Bs. <span class="text-slate-500 font-normal">(Opcional / Editable)</span>
@@ -347,6 +358,7 @@ import Layout from '../layouts/Layout.astro';
 
 		function abrirModalCertificar(item) {
 			modalError.classList.add('hidden');
+			document.getElementById('cert-plan').value = item.plan_inversion || '20_usd';
 			document.getElementById('cert-id').value = item.id;
 			document.getElementById('modal-participante-info').textContent = `${item.nombre_apellido} (${item.codigo}) — ${item.iglesia}`;
 
@@ -439,6 +451,7 @@ import Layout from '../layouts/Layout.astro';
 			btnConfirmarCert.textContent = 'Guardando...';
 
 			const id = document.getElementById('cert-id').value;
+			const plan_inversion = document.getElementById('cert-plan').value;
 			const montoCrudo = document.getElementById('cert-monto').value.trim();
 			const monto_bs = montoCrudo
 				? parseFloat(montoCrudo.replace(/\./g, '').replace(',', '.'))
@@ -453,6 +466,7 @@ import Layout from '../layouts/Layout.astro';
 						clave: claveSesion,
 						id,
 						certificado: true,
+						plan_inversion,
 						monto_bs,
 						referencia
 					})

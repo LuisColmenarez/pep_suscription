@@ -4,7 +4,7 @@ export const prerender = false;
 
 export async function POST({ request }) {
   try {
-    const { clave, id, certificado, monto_bs, referencia } = await request.json();
+    const { clave, id, certificado, monto_bs, referencia, plan_inversion } = await request.json();
 
     if (!clave || !id || typeof certificado !== 'boolean') {
       return new Response(
@@ -25,7 +25,7 @@ export async function POST({ request }) {
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // 1. Verificar clave maestra en tabla configuracion
+    // 1. Verificar clave maestra
     const { data: configData, error: configError } = await supabaseAdmin
       .from('configuracion')
       .select('valor')
@@ -39,10 +39,10 @@ export async function POST({ request }) {
       );
     }
 
-    // 2. Consultar registro actual para conservar datos previos si no se sobrescriben
+    // 2. Consultar registro actual
     const { data: actual, error: fetchError } = await supabaseAdmin
       .from('inscritos')
-      .select('estado_pago, monto_bs, referencia')
+      .select('estado_pago, monto_bs, referencia, plan_inversion')
       .eq('id', id)
       .single();
 
@@ -56,6 +56,11 @@ export async function POST({ request }) {
     const updatePayload = { certificado };
 
     if (certificado) {
+      // Actualizar plan si se envió uno válido
+      if (plan_inversion === '12_usd' || plan_inversion === '20_usd') {
+        updatePayload.plan_inversion = plan_inversion;
+      }
+
       const montoLimpio = monto_bs !== undefined && monto_bs !== null && String(monto_bs).trim() !== ''
         ? parseFloat(monto_bs)
         : null;
@@ -66,7 +71,6 @@ export async function POST({ request }) {
       updatePayload.monto_bs = montoLimpio;
       updatePayload.referencia = refLimpia;
 
-      // Si estaba pendiente y el administrador registró monto o referencia, actualizar estado_pago
       if (actual.estado_pago === 'pendiente' && (montoLimpio !== null || refLimpia !== null)) {
         updatePayload.estado_pago = 'pagado_movil';
       }
