@@ -298,7 +298,7 @@ try {
 								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div>
 										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado (Bs.) *</label>
-										<input type="number" step="0.01" min="0" id="monto_bs_movil" placeholder="Ej. 1250.00" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+										<input type="text" inputmode="decimal" id="monto_bs_movil" placeholder="Ej. 1.250,00" class="input-monto-bs w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
 										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Banco Emisor *</label>
@@ -325,7 +325,7 @@ try {
 								<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<div>
 										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Monto Pagado *</label>
-										<input type="number" step="0.01" min="0" id="monto_bs_efectivo" placeholder="" class="w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
+										<input type="text" inputmode="decimal" id="monto_bs_efectivo" placeholder="Ej. 1.250,00" class="input-monto-bs w-full px-3 py-2 text-sm rounded-lg bg-slate-950 border border-slate-800 text-white" />
 									</div>
 									<div>
 										<label class="block text-[11px] font-semibold text-slate-400 mb-1">Responsable que recibió *</label>
@@ -495,6 +495,44 @@ try {
 
 	<!-- Scripts de Interacción Frontend -->
 	<script>
+		// Formateo visual en vivo: 125000 -> 1.250,00 (estilo cajero)
+		function formatearNumeroVE(valor) {
+			const num = Number(valor);
+			if (isNaN(num)) return '';
+			const partes = num.toFixed(2).split('.');
+			partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+			return partes.join(',');
+		}
+
+		function aplicarMascaraBs(input) {
+			if (!input) return;
+			input.addEventListener('input', () => {
+				const soloDigitos = input.value.replace(/\D/g, '');
+				if (!soloDigitos) {
+					input.value = '';
+					return;
+				}
+				const numero = parseInt(soloDigitos, 10) / 100;
+				input.value = formatearNumeroVE(numero);
+			});
+		}
+
+		function limpiarMontoParaAPI(valorFormateado) {
+			if (!valorFormateado) return null;
+			const str = String(valorFormateado).trim();
+			if (str.includes(',') && str.includes('.')) {
+				const limpio = str.lastIndexOf(',') > str.lastIndexOf('.')
+					? str.replace(/\./g, '').replace(',', '.')
+					: str.replace(/,/g, '');
+				const num = parseFloat(limpio);
+				return isNaN(num) || num <= 0 ? null : num;
+			}
+			const num = parseFloat(str.replace(',', '.'));
+			return isNaN(num) || num <= 0 ? null : num;
+		}
+
+		document.querySelectorAll('.input-monto-bs').forEach(aplicarMascaraBs);
+
 		// Configurar calendario de fecha de pago (hoy por defecto y máximo hoy)
 		const inputFechaPago = document.getElementById('fecha_pago');
 		if (inputFechaPago) {
@@ -628,11 +666,13 @@ try {
 			btnText.textContent = 'Registrando...';
 
 			const estadoPagoActual = document.querySelector('input[name="estado_pago"]:checked').value;
-			const montoBsVal = estadoPagoActual === 'pagado_movil'
+			const montoBsRaw = estadoPagoActual === 'pagado_movil'
 				? document.getElementById('monto_bs_movil').value
 				: estadoPagoActual === 'pagado_efectivo'
 					? document.getElementById('monto_bs_efectivo').value
 					: null;
+
+			const montoBsVal = limpiarMontoParaAPI(montoBsRaw);
 
 			const formData = {
 				nombre_apellido: document.getElementById('nombre_apellido').value,
